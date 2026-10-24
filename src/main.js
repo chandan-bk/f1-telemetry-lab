@@ -501,6 +501,27 @@ function flyToPart(infoId) {
   return camPos;
 }
 
+function flyToSensor(sensor, part) {
+  if (!sensor) return;
+  const marker = sensorsManager?.markers.find((m) => m.sensor === sensor && (!part || m.parentPart === part))
+    || sensorsManager?.markers.find((m) => m.sensor === sensor);
+  if (!marker) return;
+
+  const targetPos = new THREE.Vector3();
+  marker.group.getWorldPosition(targetPos);
+
+  const dir = camera.position.clone().sub(controls.target).normalize();
+  if (dir.y < 0.2) dir.y = 0.35;
+  dir.normalize();
+
+  const dist = 0.85;
+  const camPos = targetPos.clone().addScaledVector(dir, dist);
+
+  flyTo(camPos.toArray(), targetPos.toArray(), 0.85);
+  return camPos;
+}
+
+
 /** A point on the part's surface near its centre, on the side facing `viewPos`. */
 function surfacePoint(part, viewPos) {
   const c = new THREE.Box3().setFromObject(part).getCenter(new THREE.Vector3());
@@ -826,7 +847,7 @@ requestAnimationFrame((now) => {
 // handy for debugging in the console
 window.__f1 = {
   THREE, scene, car, reg, state, camera, controls, studio, renderer, composer,
-  // advance the simulation deterministically (useful when rAF is throttled)
+  callout, sensorsManager, flyToSensor,
   explodeOffset,
   advance(seconds = 1) {
     for (let t = 0; t < seconds; t += 1 / 60) update(1 / 60);

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { CATEGORIES } from '../data/parts.js';
+import { mountSensorPreview, unmountSensorPreview } from './sensorPreview.js';
 
 const FREEDOM = ['None', 'Minimal', 'Limited', 'Substantial', 'High'];
 const NS = 'http://www.w3.org/2000/svg';
@@ -19,7 +20,8 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
  * as it explodes, hides or as the camera orbits.
  */
 export class Callout {
-  constructor({ card, svg, camera, renderer, onClose }) {
+  constructor({ card, svg, camera, renderer, onClose, onFocusSensor }) {
+    this.onFocusSensor = onFocusSensor;
     this.onClose = onClose;
     this.card = card;
     this.svg = svg;
@@ -127,6 +129,7 @@ export class Callout {
         ${pinned ? '<button class="close" aria-label="Close"></button>' : '<span class="pin">Click to pin</span>'}
       </div>
       <h3>${esc(sensor.name)}</h3>
+      <div class="sensor-3d-turntable-container" id="sensor-preview-slot"></div>
       <p><b>Measures:</b> ${esc(sensor.measures)}</p>
       <p><b>Why it matters:</b> ${esc(sensor.whyItMatters)}</p>
       <div class="sensor-path-box">
@@ -136,6 +139,12 @@ export class Callout {
       <p class="sensor-fine-print">Sensor positions and details are representative; real layouts are team-confidential.</p>
     `;
     this.card.querySelector('.close')?.addEventListener('click', () => this.onClose?.());
+    const slot = this.card.querySelector('#sensor-preview-slot');
+    if (slot) {
+      mountSensorPreview(slot, sensor.id, {
+        onFocus: () => this.onFocusSensor?.(sensor, this.part),
+      });
+    }
   }
 
   update() {

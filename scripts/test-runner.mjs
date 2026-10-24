@@ -87,6 +87,9 @@ async function main() {
       returnByValue: true,
       awaitPromise: true,
     });
+    if (res?.exceptionDetails) {
+      console.error('[Eval Exception]', res.exceptionDetails.exception?.description || res.exceptionDetails.text);
+    }
     return res?.result?.value;
   }
 
@@ -147,36 +150,37 @@ async function main() {
   console.log(`✓ Quality Gate 2: Sensors layer ON -> active=${sensorsActive}, visible markers=${visibleCount}`);
   await captureScreenshot('02_sensors_layer_on.png');
 
-  // Quality Gate 3: Callout Card & Interaction with Sensor Details
-  await evaluate(`
-    const markers = [];
-    window.__f1.scene.traverse(o => {
-      if (o.userData && o.userData.isSensor) markers.push(o);
-    });
-    const sphere = markers[0];
-    const s = sphere.userData.sensor;
-    const part = sphere.userData.parentPart;
-    const card = document.getElementById('card');
-    card.hidden = false;
-    card.classList.add('show', 'pinned');
-    card.innerHTML = \`
-      <div class="cat-row">
-        <span class="cat"><i style="background:#00E5FF"></i>CONTROL</span>
-        <span class="sensor-auth-badge" style="background:#0084FF22; color:#0084FF; border:1px solid #0084FF55;">TEAM ENGINEERING</span>
-        <button class="close" aria-label="Close"></button>
-      </div>
-      <h3>\${s.name}</h3>
-      <p><b>Measures:</b> \${s.measures}</p>
-      <p><b>Why it matters:</b> \${s.whyItMatters}</p>
-      <div class="sensor-path-box">
-        <span class="path-title">SIGNAL DATA PATH</span>
-        <code>\${s.dataPath}</code>
-      </div>
-      <p class="sensor-fine-print">Sensor positions and details are representative; real layouts are team-confidential.</p>
-    \`;
-    window.__f1.advance(0.2);
+  // Quality Gate 3: Callout Card with 360° 3D Inspector and Focus Zoom
+  const cardInfo = await evaluate(`
+    (() => {
+      const m = window.__f1.sensorsManager.markers.find(x => x.sensor.id === 'sen_pitot_array')
+        || window.__f1.sensorsManager.markers[0];
+      const s = m.sensor;
+      const part = m.parentPart;
+      const pos = new window.__f1.THREE.Vector3();
+      m.meshes[0].getWorldPosition(pos);
+      
+      window.__f1.callout.show(s, s.id, part, pos, true);
+      const card = document.getElementById('card');
+      card.classList.add('show');
+      window.__f1.flyToSensor(s, part);
+      
+      // Advance simulation so camera tween completes and callout update positions card
+      window.__f1.advance(1.5);
+
+      return {
+        cardHidden: card.hidden,
+        cardClass: card.className,
+        cardLeft: card.style.left,
+        cardTop: card.style.top,
+        hasPreviewSlot: !!card.querySelector('#sensor-preview-slot'),
+        hasCanvas: !!card.querySelector('#sensor-preview-slot canvas'),
+        title: card.querySelector('h3')?.textContent
+      };
+    })()
   `);
-  await sleep(400);
+  console.log('✓ Quality Gate 3 Card Info:', JSON.stringify(cardInfo));
+  await sleep(600);
   await captureScreenshot('03_sensor_callout_pinned.png');
 
   // Quality Gate 4: Memory Leak Verification (Toggle Sensors 20 times)
@@ -184,16 +188,20 @@ async function main() {
   const initialTexs = await evaluate(`window.__f1.renderer.info.memory.textures`);
   for (let i = 0; i < 20; i++) {
     await evaluate(`
-      const chip = document.querySelector('.sensor-layer-chip');
-      if (chip) chip.click();
-      window.__f1.advance(0.05);
+      (() => {
+        const c = document.querySelector('.sensor-layer-chip');
+        if (c) c.click();
+        window.__f1.advance(0.05);
+      })()
     `);
   }
   // Turn back on
   await evaluate(`
-    const chip = document.querySelector('.sensor-layer-chip');
-    if (chip && chip.classList.contains('off')) chip.click();
-    window.__f1.advance(0.5);
+    (() => {
+      const c = document.querySelector('.sensor-layer-chip');
+      if (c && c.classList.contains('off')) c.click();
+      window.__f1.advance(0.5);
+    })()
   `);
   const endGeoms = await evaluate(`window.__f1.renderer.info.memory.geometries`);
   const endTexs = await evaluate(`window.__f1.renderer.info.memory.textures`);

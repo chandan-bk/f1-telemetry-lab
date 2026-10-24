@@ -5,8 +5,8 @@ import { FRONT_AXLE_X, REAR_AXLE_X } from './dims.js';
 
 /**
  * Procedural 3D Motorsport IoT Sensors Hardware Generator.
- * Replaces simple dots with realistic physical 3D sensor assemblies that can be
- * orbited 360 degrees, inspected, and exploded alongside existing car components.
+ * Models real physical 3D motorsport hardware components at prominent scale (~15-28 cm)
+ * so they are immediately visible as authentic 3D parts when orbiting 360° and disassembling in Exploded view.
  */
 export class SensorsManager {
   constructor({ scene, reg, state, requestRender }) {
@@ -20,66 +20,68 @@ export class SensorsManager {
     this.filterCategory = 'all';
     this.filterAuthority = 'all';
 
-    // Shared reusable geometries
+    // Shared reusable geometries scaled for prominent 3D mechanical visibility
     this.geos = {
       // Cylinders & tubes
-      tubeProbe: new THREE.CylinderGeometry(0.0035, 0.006, 0.075, 12),
-      pyrometerBody: new THREE.CylinderGeometry(0.0075, 0.0075, 0.026, 14),
-      lensCyl: new THREE.CylinderGeometry(0.0055, 0.0055, 0.003, 12),
-      hexCollar: new THREE.CylinderGeometry(0.011, 0.011, 0.022, 6),
-      spigotCyl: new THREE.CylinderGeometry(0.006, 0.006, 0.008, 10),
-      potOuter: new THREE.CylinderGeometry(0.0065, 0.0065, 0.048, 12),
-      potInner: new THREE.CylinderGeometry(0.0032, 0.0032, 0.042, 12),
-      valveStem: new THREE.CylinderGeometry(0.0028, 0.0028, 0.018, 8),
-      connectorGland: new THREE.CylinderGeometry(0.004, 0.004, 0.008, 8),
-      baseCollar: new THREE.CylinderGeometry(0.009, 0.011, 0.012, 12),
+      tubeProbe: new THREE.CylinderGeometry(0.016, 0.024, 0.28, 16),
+      pyrometerBody: new THREE.CylinderGeometry(0.034, 0.034, 0.12, 16),
+      lensCyl: new THREE.CylinderGeometry(0.028, 0.028, 0.012, 16),
+      hexCollar: new THREE.CylinderGeometry(0.048, 0.048, 0.10, 6),
+      spigotCyl: new THREE.CylinderGeometry(0.024, 0.024, 0.036, 12),
+      potOuter: new THREE.CylinderGeometry(0.026, 0.026, 0.18, 14),
+      potInner: new THREE.CylinderGeometry(0.014, 0.014, 0.16, 14),
+      valveStem: new THREE.CylinderGeometry(0.012, 0.012, 0.08, 10),
+      connectorGland: new THREE.CylinderGeometry(0.016, 0.016, 0.032, 12),
+      baseCollar: new THREE.CylinderGeometry(0.036, 0.044, 0.048, 16),
+      eyeletRing: new THREE.TorusGeometry(0.022, 0.007, 8, 16),
       // Boxes & enclosures
-      flowBlock: new THREE.BoxGeometry(0.038, 0.022, 0.028),
-      adrBox: new THREE.BoxGeometry(0.046, 0.025, 0.034),
-      laserBox: new THREE.BoxGeometry(0.028, 0.012, 0.022),
-      antennaBlade: new THREE.BoxGeometry(0.003, 0.055, 0.024),
-      ecuChassis: new THREE.BoxGeometry(0.048, 0.018, 0.036),
-      bracketArm: new THREE.BoxGeometry(0.004, 0.016, 0.008),
-      tpmsPack: new THREE.BoxGeometry(0.022, 0.008, 0.014),
-      // Status indicators & accents
-      ledSphere: new THREE.SphereGeometry(0.006, 12, 10),
-      accentRing: new THREE.TorusGeometry(0.014, 0.0025, 8, 20),
-      fiaRing: new THREE.TorusGeometry(0.022, 0.003, 8, 24),
+      flowBlock: new THREE.BoxGeometry(0.18, 0.09, 0.12),
+      adrBox: new THREE.BoxGeometry(0.20, 0.10, 0.14),
+      laserBox: new THREE.BoxGeometry(0.13, 0.05, 0.10),
+      antennaBlade: new THREE.BoxGeometry(0.016, 0.24, 0.11),
+      ecuChassis: new THREE.BoxGeometry(0.22, 0.08, 0.16),
+      bracketArm: new THREE.BoxGeometry(0.018, 0.06, 0.032),
+      tpmsPack: new THREE.BoxGeometry(0.10, 0.038, 0.065),
+      // Mechanical accent rings (replaces freestanding glowing dots)
+      accentBand: new THREE.TorusGeometry(0.052, 0.006, 8, 24),
+      smallBand: new THREE.TorusGeometry(0.036, 0.005, 8, 20),
     };
 
     // Shared realistic motorsport materials
     this.materials = {
-      titanium: new THREE.MeshStandardMaterial({ color: 0xb5b9be, metalness: 0.85, roughness: 0.28 }),
-      steel: new THREE.MeshStandardMaterial({ color: 0x8a9096, metalness: 0.9, roughness: 0.2 }),
-      anodizedBlack: new THREE.MeshStandardMaterial({ color: 0x18181c, metalness: 0.5, roughness: 0.35 }),
-      billetAlum: new THREE.MeshStandardMaterial({ color: 0xd8dce0, metalness: 0.78, roughness: 0.28 }),
-      goldBrass: new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.3 }),
-      crashOrange: new THREE.MeshStandardMaterial({ color: 0xff6600, metalness: 0.15, roughness: 0.35 }),
-      lensGlass: new THREE.MeshPhysicalMaterial({ color: 0x1a3366, roughness: 0.1, metalness: 0.2, clearcoat: 0.9 }),
-      // Glowing category LED accents
-      controlLed: new THREE.MeshStandardMaterial({
+      titanium: new THREE.MeshStandardMaterial({ color: 0xc4c9ce, metalness: 0.9, roughness: 0.22 }),
+      steel: new THREE.MeshStandardMaterial({ color: 0x9aa0a6, metalness: 0.95, roughness: 0.15 }),
+      anodizedBlack: new THREE.MeshStandardMaterial({ color: 0x16171a, metalness: 0.65, roughness: 0.28 }),
+      billetAlum: new THREE.MeshStandardMaterial({ color: 0xe0e4e8, metalness: 0.85, roughness: 0.2 }),
+      goldBrass: new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.88, roughness: 0.22 }),
+      crashOrange: new THREE.MeshStandardMaterial({ color: 0xff5500, metalness: 0.25, roughness: 0.35 }),
+      lensGlass: new THREE.MeshPhysicalMaterial({
+        color: 0x113366,
+        roughness: 0.05,
+        metalness: 0.1,
+        clearcoat: 1.0,
+      }),
+      // Sleek anodized category accents for mechanical collars
+      controlAccent: new THREE.MeshStandardMaterial({
         color: new THREE.Color(SENSOR_CATEGORIES.control.color),
+        metalness: 0.5,
+        roughness: 0.3,
         emissive: new THREE.Color(SENSOR_CATEGORIES.control.color),
-        emissiveIntensity: 1.5,
-        roughness: 0.2,
+        emissiveIntensity: 0.45,
       }),
-      monitoringLed: new THREE.MeshStandardMaterial({
+      monitoringAccent: new THREE.MeshStandardMaterial({
         color: new THREE.Color(SENSOR_CATEGORIES.monitoring.color),
+        metalness: 0.5,
+        roughness: 0.3,
         emissive: new THREE.Color(SENSOR_CATEGORIES.monitoring.color),
-        emissiveIntensity: 1.5,
-        roughness: 0.2,
+        emissiveIntensity: 0.45,
       }),
-      instrumentationLed: new THREE.MeshStandardMaterial({
+      instrumentationAccent: new THREE.MeshStandardMaterial({
         color: new THREE.Color(SENSOR_CATEGORIES.instrumentation.color),
+        metalness: 0.5,
+        roughness: 0.3,
         emissive: new THREE.Color(SENSOR_CATEGORIES.instrumentation.color),
-        emissiveIntensity: 1.5,
-        roughness: 0.2,
-      }),
-      fiaSeal: new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        emissive: 0xe10600,
-        emissiveIntensity: 1.6,
-        roughness: 0.2,
+        emissiveIntensity: 0.45,
       }),
     };
 
@@ -88,9 +90,6 @@ export class SensorsManager {
     }
   }
 
-  /**
-   * Resolve part targets for a sensor, handling mirrored corners/sides.
-   */
   resolveTargets(sensor) {
     const pId = sensor.parentPartId;
     const targets = [];
@@ -101,7 +100,6 @@ export class SensorsManager {
       return targets;
     }
 
-    // Mirrored 4-corner parts (e.g. upright-FL, rim-FL, caliper-FL, suspension-FL, brake-duct-FL)
     if (pId.endsWith('-FL')) {
       const base = pId.slice(0, -3);
       const corners = [
@@ -119,7 +117,6 @@ export class SensorsManager {
       return targets;
     }
 
-    // Mirrored rear corners (e.g. driveshaft-RL)
     if (pId.endsWith('-RL')) {
       const base = pId.slice(0, -3);
       for (const [key, side] of [['RL', 1], ['RR', -1]]) {
@@ -131,15 +128,12 @@ export class SensorsManager {
       return targets;
     }
 
-    // Mirrored left/right body/internal parts (e.g. radiator-L, sidepod-L, sis-L)
     if (pId.endsWith('-L')) {
       const base = pId.slice(0, -2);
       const partL = this.reg.parts.get(`${base}-L`);
       const partR = this.reg.parts.get(`${base}-R`);
       if (partL) targets.push({ part: partL, anchor: { ...sensor.anchor } });
-      if (partR) {
-        targets.push({ part: partR, anchor: { ...sensor.anchor } });
-      }
+      if (partR) targets.push({ part: partR, anchor: { ...sensor.anchor } });
       return targets;
     }
 
@@ -148,18 +142,15 @@ export class SensorsManager {
     return targets;
   }
 
-  /**
-   * Build realistic 3D physical sensor hardware based on sensor type.
-   */
   buildHardwareModel(sensor, group, part) {
     const meshes = [];
     const id = sensor.id;
-    const catLedMat =
+    const catAccent =
       sensor.category === 'control'
-        ? this.materials.controlLed
+        ? this.materials.controlAccent
         : sensor.category === 'monitoring'
-        ? this.materials.monitoringLed
-        : this.materials.instrumentationLed;
+        ? this.materials.monitoringAccent
+        : this.materials.instrumentationAccent;
 
     const tag = (mesh, isMain = false) => {
       mesh.castShadow = true;
@@ -183,16 +174,18 @@ export class SensorsManager {
     if (id === 'sen_pitot_array') {
       const tube = new THREE.Mesh(this.geos.tubeProbe, this.materials.titanium);
       tube.rotation.z = Math.PI / 2;
+      tube.position.x = 0.10;
       tag(tube, true);
 
       const collar = new THREE.Mesh(this.geos.baseCollar, this.materials.anodizedBlack);
       collar.rotation.z = Math.PI / 2;
-      collar.position.x = -0.025;
+      collar.position.x = -0.04;
       tag(collar);
 
-      const tip = new THREE.Mesh(this.geos.ledSphere, catLedMat);
-      tip.position.x = 0.04;
-      tag(tip);
+      const band = new THREE.Mesh(this.geos.smallBand, catAccent);
+      band.rotation.y = Math.PI / 2;
+      band.position.x = 0.05;
+      tag(band);
     }
     // 2. Optical Infrared Pyrometers (Brake Disc, Tyre IR)
     else if (id === 'sen_brake_disc_temp' || id === 'sen_tyre_ir') {
@@ -202,60 +195,85 @@ export class SensorsManager {
 
       const lens = new THREE.Mesh(this.geos.lensCyl, this.materials.lensGlass);
       lens.rotation.x = Math.PI / 2;
-      lens.position.z = 0.013;
+      lens.position.z = 0.06;
       tag(lens);
 
       const arm = new THREE.Mesh(this.geos.bracketArm, this.materials.titanium);
-      arm.position.y = -0.008;
+      arm.position.y = -0.035;
       tag(arm);
 
-      const beacon = new THREE.Mesh(this.geos.ledSphere, catLedMat);
-      beacon.position.z = -0.014;
-      tag(beacon);
+      const conn = new THREE.Mesh(this.geos.connectorGland, this.materials.goldBrass);
+      conn.rotation.x = Math.PI / 2;
+      conn.position.z = -0.07;
+      tag(conn);
+
+      const band = new THREE.Mesh(this.geos.smallBand, catAccent);
+      band.position.z = 0.02;
+      tag(band);
     }
     // 3. Strain-Gauge Load Cell Collars (Pushrod, Wing Strain, Driveshaft Torque)
     else if (id === 'sen_pushrod_load' || id === 'sen_wing_strain' || id === 'sen_driveshaft_torque') {
       const collar = new THREE.Mesh(this.geos.hexCollar, this.materials.titanium);
       tag(collar, true);
 
+      for (const dy of [-0.06, 0.06]) {
+        const spigot = new THREE.Mesh(this.geos.spigotCyl, this.materials.steel);
+        spigot.position.y = dy;
+        tag(spigot);
+      }
+
       const gland = new THREE.Mesh(this.geos.connectorGland, this.materials.goldBrass);
       gland.rotation.z = Math.PI / 2;
-      gland.position.x = 0.012;
+      gland.position.x = 0.055;
       tag(gland);
 
-      const ring = new THREE.Mesh(this.geos.accentRing, catLedMat);
+      const ring = new THREE.Mesh(this.geos.accentBand, catAccent);
       ring.rotation.x = Math.PI / 2;
       tag(ring);
     }
     // 4. Linear Travel Potentiometer / LVDT (Damper, Active Aero Flaps)
     else if (id === 'sen_damper_pos' || id === 'sen_active_aero_pos') {
       const outer = new THREE.Mesh(this.geos.potOuter, this.materials.anodizedBlack);
-      outer.position.y = 0.01;
+      outer.position.y = 0.04;
       tag(outer, true);
 
       const inner = new THREE.Mesh(this.geos.potInner, this.materials.steel);
-      inner.position.y = -0.02;
+      inner.position.y = -0.09;
       tag(inner);
 
-      const beacon = new THREE.Mesh(this.geos.ledSphere, catLedMat);
-      beacon.position.y = 0.035;
-      tag(beacon);
+      const eyelet = new THREE.Mesh(this.geos.eyeletRing, this.materials.titanium);
+      eyelet.position.y = 0.14;
+      tag(eyelet);
+
+      const gland = new THREE.Mesh(this.geos.connectorGland, this.materials.goldBrass);
+      gland.rotation.z = Math.PI / 2;
+      gland.position.set(0.032, 0.09, 0);
+      tag(gland);
+
+      const band = new THREE.Mesh(this.geos.smallBand, catAccent);
+      band.rotation.x = Math.PI / 2;
+      band.position.y = -0.02;
+      tag(band);
     }
     // 5. Ultrasonic Fuel Mass Flow Meter
     else if (id === 'sen_fuel_flow') {
       const block = new THREE.Mesh(this.geos.flowBlock, this.materials.billetAlum);
       tag(block, true);
 
-      for (const dx of [-0.02, 0.02]) {
+      for (const dx of [-0.10, 0.10]) {
         const port = new THREE.Mesh(this.geos.spigotCyl, this.materials.titanium);
         port.rotation.z = Math.PI / 2;
         port.position.x = dx;
         tag(port);
       }
 
-      const ring = new THREE.Mesh(this.geos.accentRing, catLedMat);
-      ring.rotation.y = Math.PI / 2;
-      tag(ring);
+      const gland = new THREE.Mesh(this.geos.connectorGland, this.materials.goldBrass);
+      gland.position.y = 0.055;
+      tag(gland);
+
+      const band = new THREE.Mesh(this.geos.accentBand, catAccent);
+      band.rotation.y = Math.PI / 2;
+      tag(band);
     }
     // 6. FIA Accident Data Recorder (Crash Black Box)
     else if (id === 'sen_adr_crash') {
@@ -263,12 +281,12 @@ export class SensorsManager {
       tag(box, true);
 
       const gland = new THREE.Mesh(this.geos.connectorGland, this.materials.goldBrass);
-      gland.position.y = 0.014;
+      gland.position.set(0.05, 0.06, 0);
       tag(gland);
 
-      const beacon = new THREE.Mesh(this.geos.ledSphere, catLedMat);
-      beacon.position.set(0.015, 0.014, 0);
-      tag(beacon);
+      const band = new THREE.Mesh(this.geos.accentBand, catAccent);
+      band.position.set(-0.04, 0.052, 0);
+      tag(band);
     }
     // 7. Dynamic Laser Ride Height Sensor
     else if (id === 'sen_ride_height') {
@@ -276,28 +294,30 @@ export class SensorsManager {
       tag(block, true);
 
       const lens1 = new THREE.Mesh(this.geos.lensCyl, this.materials.lensGlass);
-      lens1.position.set(-0.006, -0.006, 0);
+      lens1.position.set(-0.035, -0.028, 0);
       tag(lens1);
       const lens2 = new THREE.Mesh(this.geos.lensCyl, this.materials.lensGlass);
-      lens2.position.set(0.006, -0.006, 0);
+      lens2.position.set(0.035, -0.028, 0);
       tag(lens2);
 
-      const beacon = new THREE.Mesh(this.geos.ledSphere, catLedMat);
-      beacon.position.set(0, 0.008, 0);
-      tag(beacon);
+      const gland = new THREE.Mesh(this.geos.connectorGland, this.materials.goldBrass);
+      gland.rotation.z = Math.PI / 2;
+      gland.position.set(0.075, 0.01, 0);
+      tag(gland);
     }
-    // 8. Telemetry Blade Antenna
+    // 8. Telemetry RF Blade Antenna
     else if (id === 'sen_telemetry_antenna') {
       const blade = new THREE.Mesh(this.geos.antennaBlade, this.materials.anodizedBlack);
-      blade.position.y = 0.025;
+      blade.position.y = 0.12;
       tag(blade, true);
 
       const base = new THREE.Mesh(this.geos.baseCollar, this.materials.goldBrass);
       tag(base);
 
-      const beacon = new THREE.Mesh(this.geos.ledSphere, catLedMat);
-      beacon.position.y = 0.052;
-      tag(beacon);
+      const band = new THREE.Mesh(this.geos.smallBand, catAccent);
+      band.rotation.x = Math.PI / 2;
+      band.position.y = 0.03;
+      tag(band);
     }
     // 9. Tyre Pressure & Temp Wheel Sensor (TPMS)
     else if (id === 'sen_tpms') {
@@ -305,12 +325,12 @@ export class SensorsManager {
       tag(pack, true);
 
       const stem = new THREE.Mesh(this.geos.valveStem, this.materials.titanium);
-      stem.position.y = 0.012;
+      stem.position.y = 0.05;
       tag(stem);
 
-      const beacon = new THREE.Mesh(this.geos.ledSphere, catLedMat);
-      beacon.position.set(0.008, 0.006, 0);
-      tag(beacon);
+      const cap = new THREE.Mesh(this.geos.connectorGland, this.materials.goldBrass);
+      cap.position.y = 0.09;
+      tag(cap);
     }
     // 10. FIA Standard Electronic Control Unit (SECU)
     else if (id === 'sen_secu') {
@@ -320,43 +340,30 @@ export class SensorsManager {
       for (let i = 0; i < 3; i++) {
         const c = new THREE.Mesh(this.geos.connectorGland, this.materials.goldBrass);
         c.rotation.z = Math.PI / 2;
-        c.position.set(-0.025, 0, -0.01 + i * 0.01);
+        c.position.set(-0.12, 0, -0.04 + i * 0.04);
         tag(c);
       }
-
-      const beacon = new THREE.Mesh(this.geos.ledSphere, catLedMat);
-      beacon.position.set(0.018, 0.01, 0);
-      tag(beacon);
     }
-    // 11. Generic High-Precision Transducer (Pressure, RPM, Resolver, Lambda, Temp, IMU)
+    // 11. Generic High-Precision Motorsport Transducer
     else {
       const body = new THREE.Mesh(this.geos.hexCollar, this.materials.titanium);
       tag(body, true);
 
       const spigot = new THREE.Mesh(this.geos.spigotCyl, this.materials.steel);
-      spigot.position.y = -0.014;
+      spigot.position.y = -0.06;
       tag(spigot);
 
       const gland = new THREE.Mesh(this.geos.connectorGland, this.materials.goldBrass);
-      gland.position.y = 0.014;
+      gland.position.y = 0.06;
       tag(gland);
 
-      const beacon = new THREE.Mesh(this.geos.ledSphere, catLedMat);
-      beacon.position.set(0.008, 0.012, 0);
-      tag(beacon);
+      const ring = new THREE.Mesh(this.geos.accentBand, catAccent);
+      ring.rotation.x = Math.PI / 2;
+      tag(ring);
     }
 
-    // Official FIA Mandatory Scrutineering Seal Ring
-    if (sensor.authority === 'FIA') {
-      const fiaHalo = new THREE.Mesh(this.geos.fiaRing, this.materials.fiaSeal);
-      fiaHalo.rotation.x = Math.PI / 2;
-      fiaHalo.userData = { isSensorRing: true, baseMaterial: this.materials.fiaSeal };
-      group.add(fiaHalo);
-    }
-
-    // Optional debug coordinate axes
     if (DEBUG_SENSORS) {
-      const axes = new THREE.AxesHelper(0.04);
+      const axes = new THREE.AxesHelper(0.12);
       group.add(axes);
     }
 
@@ -390,9 +397,6 @@ export class SensorsManager {
     }
   }
 
-  /**
-   * Checks whether a sensor matches active category and authority filters.
-   */
   matchesFilter(sensor) {
     if (this.filterCategory !== 'all' && sensor.category !== this.filterCategory) {
       return false;
@@ -410,9 +414,6 @@ export class SensorsManager {
     this.requestRender();
   }
 
-  /**
-   * Synchronize visibility based on the Sensors layer, parent layer state, and active filters.
-   */
   syncVisibility() {
     const sensorsLayerOn = !!this.state.layers.sensors;
 
@@ -427,9 +428,6 @@ export class SensorsManager {
     }
   }
 
-  /**
-   * Raycast against visible 3D sensor meshes.
-   */
   pick(raycaster) {
     if (!this.state.layers.sensors) return null;
 
@@ -441,51 +439,45 @@ export class SensorsManager {
     }
 
     if (!activeTargets.length) return null;
-
     const hits = raycaster.intersectObjects(activeTargets, false);
     if (!hits.length) return null;
 
-    const hit = hits[0];
-    const { sensor, parentPart, markerGroup } = hit.object.userData;
+    const hitMesh = hits[0].object;
+    const { sensor, parentPart, markerGroup } = hitMesh.userData;
 
     return {
       isSensor: true,
       sensor,
-      marker: hit.object,
-      markerGroup,
       part: parentPart,
-      point: hit.point,
+      marker: markerGroup,
+      point: hits[0].point,
     };
   }
 
-  /**
-   * Highlight physical 3D sensor model when hovered.
-   */
-  highlight(marker, hot) {
-    if (!marker) return;
-    const group = marker.userData?.markerGroup;
-    if (group) {
-      const targetScale = hot ? 1.3 : 1.0;
-      group.scale.setScalar(targetScale);
-    }
-    this.requestRender();
+  highlight(markerGroup, isHighlighted) {
+    if (!markerGroup) return;
+
+    markerGroup.traverse((obj) => {
+      if (obj.isMesh && obj.userData.isSensor) {
+        if (isHighlighted) {
+          obj.scale.setScalar(1.25);
+          if (obj.material && obj.material.emissive) {
+            obj.userData._origEmissive = obj.userData._origEmissive || obj.material.emissiveIntensity;
+            obj.material.emissiveIntensity = 1.6;
+          }
+        } else {
+          obj.scale.setScalar(obj.userData.baseScale || 1.0);
+          if (obj.material && obj.material.emissive && obj.userData._origEmissive !== undefined) {
+            obj.material.emissiveIntensity = obj.userData._origEmissive;
+          }
+        }
+      }
+    });
   }
 
-  /**
-   * Clean up resources on removal.
-   */
   dispose() {
-    for (const m of this.markers) {
-      if (m.group.parent) {
-        m.group.parent.remove(m.group);
-      }
-    }
-    for (const geo of Object.values(this.geos)) {
-      geo.dispose();
-    }
-    for (const mat of Object.values(this.materials)) {
-      mat.dispose();
-    }
+    for (const g of Object.values(this.geos)) g.dispose();
+    for (const m of Object.values(this.materials)) m.dispose();
     this.markers = [];
     this.markerMeshes = [];
   }
