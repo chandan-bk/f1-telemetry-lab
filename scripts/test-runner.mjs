@@ -22,7 +22,7 @@ async function main() {
     '--use-gl=angle',
     '--no-first-run',
     '--no-sandbox',
-    'http://localhost:4173/',
+    'http://localhost:5173/',
   ]);
 
   await sleep(2500);
@@ -38,7 +38,7 @@ async function main() {
     }
   }
 
-  const pageTarget = targetList.find((t) => t.type === 'page' && t.url.includes('4173')) || targetList.find((t) => t.type === 'page');
+  const pageTarget = targetList.find((t) => t.type === 'page' && t.url.includes('5173')) || targetList.find((t) => t.type === 'page');
   if (!pageTarget) {
     console.error('Could not find page target in:', targetList);
     chromeProc.kill();
