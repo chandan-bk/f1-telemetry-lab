@@ -84,6 +84,10 @@ export class Callout {
   }
 
   render(info, pinned) {
+    if (info.measures) {
+      this.renderSensor(info, pinned);
+      return;
+    }
     const cat = CATEGORIES[info.cat];
     this.path.style.stroke = 'rgba(238, 236, 233, 0.7)';
     this.dot.style.fill = '#131212';
@@ -102,6 +106,34 @@ export class Callout {
       <ul>${info.rules.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>
       ${info.numbers?.length ? `<p>${info.numbers.map(([k, v]) => `<b>${esc(k)}:</b> ${esc(v)}`).join(' · ')}</p>` : ''}
       ${info.isNew ? `<p><b>New for 2026:</b> ${esc(info.isNew)}</p>` : ''}
+    `;
+    this.card.querySelector('.close')?.addEventListener('click', () => this.onClose?.());
+  }
+
+  renderSensor(sensor, pinned) {
+    const catColor = sensor.category === 'control' ? '#00E5FF' : sensor.category === 'monitoring' ? '#00E676' : '#FFD600';
+    const authColor = sensor.authority === 'FIA' ? '#E10600' : '#0084FF';
+    this.path.style.stroke = catColor;
+    this.dot.style.fill = '#131212';
+    this.dot.style.stroke = catColor;
+    this.ring.style.stroke = catColor;
+
+    this.card.innerHTML = `
+      <div class="cat-row">
+        <span class="cat"><i style="background:${catColor}"></i>${esc(sensor.category.toUpperCase())}</span>
+        <span class="sensor-auth-badge" style="background:${authColor}22; color:${authColor}; border: 1px solid ${authColor}55;">
+          ${esc(sensor.authority === 'FIA' ? 'FIA MANDATORY' : 'TEAM ENGINEERING')}
+        </span>
+        ${pinned ? '<button class="close" aria-label="Close"></button>' : '<span class="pin">Click to pin</span>'}
+      </div>
+      <h3>${esc(sensor.name)}</h3>
+      <p><b>Measures:</b> ${esc(sensor.measures)}</p>
+      <p><b>Why it matters:</b> ${esc(sensor.whyItMatters)}</p>
+      <div class="sensor-path-box">
+        <span class="path-title">SIGNAL DATA PATH</span>
+        <code>${esc(sensor.dataPath)}</code>
+      </div>
+      <p class="sensor-fine-print">Sensor positions and details are representative; real layouts are team-confidential.</p>
     `;
     this.card.querySelector('.close')?.addEventListener('click', () => this.onClose?.());
   }

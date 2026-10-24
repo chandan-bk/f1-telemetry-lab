@@ -16,6 +16,9 @@ import { createDimensions } from './dimensions.js';
 import { createStudio } from './studio.js';
 import { Callout } from './ui/callout.js';
 import { initUI } from './ui/panels.js';
+import { ENABLE_SENSORS } from './config/sensorsConfig.js';
+import { SensorsManager } from './car/sensors.js';
+import { initSensorsUI } from './ui/sensorsUI.js';
 
 /* ------------------------------------------------------------------ */
 /* Renderer, scene, camera                                            */
@@ -90,6 +93,8 @@ for (const p of parts) {
 const dims = createDimensions(car);
 dims.group.visible = false;
 
+
+
 /* ------------------------------------------------------------------ */
 /* Post-processing                                                    */
 /* ------------------------------------------------------------------ */
@@ -145,7 +150,10 @@ composer.addPass(grade);
 const state = {
   explode: 0,
   explodeTarget: 0,
-  layers: Object.fromEntries(LAYERS.map((l) => [l.id, true])),
+  layers: {
+    ...Object.fromEntries(LAYERS.map((l) => [l.id, true])),
+    ...(ENABLE_SENSORS ? { sensors: false } : {}),
+  },
   view: 'real',
   xray: false,
   frame: false, // ghost the painted chassis shells so the internals show through
@@ -153,11 +161,26 @@ const state = {
   aeroTarget: 0,
   hover: null, // part group
   hoverInfo: null,
+  hoverSensor: null,
+  hoverMarker: null,
   pinned: null, // info id
   pinnedPart: null,
+  pinnedSensor: null,
+  pinnedMarker: null,
   categoryHover: null,
   spin: false,
 };
+
+let sensorsManager = null;
+let sensorsUI = null;
+if (ENABLE_SENSORS) {
+  sensorsManager = new SensorsManager({
+    scene,
+    reg,
+    state,
+    requestRender: () => requestRender(2),
+  });
+}
 
 /* ------------------------------------------------------------------ */
 /* Material management (realistic / rule colours / x-ray / highlight) */
@@ -221,7 +244,7 @@ function refreshMaterials() {
     const ghost = isGhost(p);
     const hot = hotInfo.has(p.userData.infoId) || (state.categoryHover && state.categoryHover === cat);
     p.traverse((o) => {
-      if (!o.isMesh) return;
+      if (!o.isMesh || o.userData.isSensor || o.userData.isSensorRing) return;
       let m = o.userData.baseMaterial;
       if (state.view === 'category' && !m.emissiveMap && !(m.emissiveIntensity > 1)) m = catMats[cat];
       if (ghost) m = ghostMat;
@@ -272,12 +295,20 @@ renderer.domElement.addEventListener('pointerup', (e) => {
   pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
   const hit = pick();
-  if (hit) pin(hit.part, hit.point);
-  else unpin();
+  if (hit) {
+    if (hit.isSensor) pinSensor(hit.sensor, hit.part, hit.marker, hit.point);
+    else pin(hit.part, hit.point);
+  } else {
+    unpin();
+  }
 });
 
 function pick() {
   raycaster.setFromCamera(pointer, camera);
+  if (ENABLE_SENSORS && state.layers.sensors && sensorsManager) {
+    const hit = sensorsManager.pick(raycaster);
+    if (hit) return hit;
+  }
   const meshes = [];
   for (const p of parts) {
     if (!p.visible || isGhost(p)) continue;
@@ -299,6 +330,11 @@ const callout = new Callout({
 });
 
 function setHover(part, point) {
+  if (state.hoverSensor && sensorsManager) {
+    sensorsManager.highlight(state.hoverMarker, false);
+    state.hoverSensor = null;
+    state.hoverMarker = null;
+  }
   const info = part?.userData.infoId ?? null;
   const changed = part !== state.hover;
   state.hover = part;
@@ -308,13 +344,18 @@ function setHover(part, point) {
     refreshMaterials();
     ui.markHot(info);
   }
-  if (!state.pinned) {
+  if (!state.pinned && !state.pinnedSensor) {
     if (part) callout.show(PARTS[info], info, part, point, false);
     else callout.hide();
   }
 }
 
 function pin(part, point) {
+  if (state.pinnedSensor && sensorsManager) {
+    sensorsManager.highlight(state.pinnedMarker, false);
+    state.pinnedSensor = null;
+    state.pinnedMarker = null;
+  }
   state.pinned = part.userData.infoId;
   state.pinnedPart = part;
   callout.show(PARTS[state.pinned], state.pinned, part, point, true);
@@ -323,11 +364,47 @@ function pin(part, point) {
 }
 
 function unpin() {
+  if (state.pinnedSensor && sensorsManager) {
+    sensorsManager.highlight(state.pinnedMarker, false);
+  }
   state.pinned = null;
   state.pinnedPart = null;
+  state.pinnedSensor = null;
+  state.pinnedMarker = null;
   callout.hide();
   refreshMaterials();
   ui.markSelected(null);
+  requestRender();
+}
+
+function setHoverSensor(sensor, part, marker, point) {
+  if (state.hoverSensor === sensor) return;
+  if (state.hoverSensor && sensorsManager) {
+    sensorsManager.highlight(state.hoverMarker, false);
+  }
+  state.hover = null;
+  state.hoverInfo = null;
+  state.hoverSensor = sensor;
+  state.hoverMarker = marker;
+  stage.classList.toggle('hovering', !!sensor);
+  if (sensor && sensorsManager) {
+    sensorsManager.highlight(marker, true);
+  }
+  if (!state.pinned && !state.pinnedSensor) {
+    if (sensor) callout.show(sensor, sensor.id, part, point, false);
+    else callout.hide();
+  }
+  requestRender();
+}
+
+function pinSensor(sensor, part, marker, point) {
+  unpin();
+  state.pinnedSensor = sensor;
+  state.pinnedPart = part;
+  state.pinnedMarker = marker;
+  if (sensorsManager) sensorsManager.highlight(marker, true);
+  callout.show(sensor, sensor.id, part, point, true);
+  requestRender();
 }
 
 window.addEventListener('keydown', (e) => {
@@ -473,6 +550,7 @@ const ui = initUI({
     for (const l of LAYERS) state.layers[l.id] = !p.off.includes(l.id);
     state.frame = !!p.frame;
     ui.sync();
+    if (sensorsUI) sensorsUI.sync();
     refreshMaterials();
     if (name === 'exploded') flyTo(...pose(CAMS.exploded), 1.2);
     else if (state.explode > 0.5) flyTo(...pose(CAMS.hero), 1.2);
@@ -546,6 +624,16 @@ const ui = initUI({
   counts: Object.fromEntries(Object.keys(CATEGORIES).map((k) => [k, Object.values(PARTS).filter((p) => p.cat === k).length])),
 });
 
+if (ENABLE_SENSORS && sensorsManager) {
+  sensorsUI = initSensorsUI({
+    state,
+    sensorsManager,
+    onLayerToggle: () => {
+      requestRender(2);
+    },
+  });
+}
+
 /* ------------------------------------------------------------------ */
 /* Animation                                                          */
 /* ------------------------------------------------------------------ */
@@ -579,6 +667,9 @@ function followExplode(from, to) {
 }
 
 function update(dt) {
+  if (ENABLE_SENSORS && sensorsManager) {
+    sensorsManager.syncVisibility();
+  }
   // explode
   const k = 1 - Math.exp(-dt * 3.2);
   const prevExplode = state.explode;
@@ -651,9 +742,13 @@ function update(dt) {
   if (pointerInside && pointerDirty && !downPos && frame % 2 === 0) {
     pointerDirty = false;
     const hit = pick();
-    if (hit) setHover(hit.part, hit.point);
-    else setHover(null);
-  } else if (!pointerInside && state.hover) {
+    if (hit) {
+      if (hit.isSensor) setHoverSensor(hit.sensor, hit.part, hit.marker, hit.point);
+      else setHover(hit.part, hit.point);
+    } else {
+      setHover(null);
+    }
+  } else if (!pointerInside && (state.hover || state.hoverSensor)) {
     setHover(null);
   }
   if (!pointerInside) pointerDirty = false;

@@ -303,3 +303,161 @@ dd { margin: 0; color: var(--text); text-align: right; }
   /* compact two-column key under the top bar */
   #key { left: 16px; right: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
 }
+
+
+/* ---------- Motorsport IoT Sensors Overlay ---------- */
+.sensor-layer-chip {
+  position: relative;
+}
+.sensor-layer-chip .sensor-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #00E5FF;
+  box-shadow: 0 0 8px #00E5FF;
+  margin-right: 6px;
+}
+.chip.off.sensor-layer-chip .sensor-dot {
+  background: var(--muted);
+  box-shadow: none;
+}
+
+.sensors-panel {
+  position: fixed;
+  z-index: 15;
+  top: calc(var(--topbar-bottom, 50px) + 14px);
+  left: 20px;
+  width: 320px;
+  background: rgba(15, 15, 17, 0.82);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--highlight), var(--shadow);
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: var(--font);
+  transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+  pointer-events: auto;
+}
+.sensors-panel[hidden] {
+  display: none;
+}
+.sensors-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.sensors-title {
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+.sensors-badge {
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: #00E5FF;
+  background: rgba(0, 229, 255, 0.12);
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 229, 255, 0.25);
+}
+.sensors-filter-group {
+  margin-bottom: 8px;
+}
+.filter-label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 5px;
+}
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.sensor-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  color: var(--body);
+  border-radius: var(--radius-ctl);
+  padding: 3px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sensor-filter-btn i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.sensor-filter-btn:hover {
+  background: var(--hover);
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+.sensor-filter-btn.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+  font-weight: 500;
+}
+.sensors-confidential-note {
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--muted);
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  font-style: italic;
+}
+
+/* Callout sensor additions */
+.sensor-auth-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.sensor-path-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 7px 9px;
+  margin: 10px 0;
+}
+.sensor-path-box .path-title {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--faint);
+  letter-spacing: 0.06em;
+  margin-bottom: 3px;
+}
+.sensor-path-box code {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: #00E5FF;
+  word-break: break-word;
+}
+.sensor-fine-print {
+  font-size: 10.5px;
+  color: var(--faint);
+  margin-top: 8px;
+  line-height: 1.35;
+  font-style: italic;
+}
