@@ -1,8 +1,10 @@
-# F1 Rules Explorer
+# Formula 1 Rules & Motorsport IoT Sensors Explorer
 
-An interactive, explodable 3D Formula 1 car (three.js) that explains the 2026 FIA
-Formula 1 Technical Regulations part by part. The car is procedurally modelled and
-deliberately generic: no team, no logos.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/chandan-bk/formula1-sensors)
+
+An interactive, explodable 3D Formula 1 car (Three.js + Vite) explaining both the 2026 FIA Formula 1 Technical Regulations and **32 Real-Time Motorsport IoT Telemetry Sensors**.
+
+👉 **Live Demo on GitHub**: [https://github.com/chandan-bk/formula1-sensors](https://github.com/chandan-bk/formula1-sensors)
 
 ```bash
 npm install
@@ -10,33 +12,26 @@ npm run dev      # http://localhost:5173
 npm run build    # static build in dist/
 ```
 
-## What you can do
+## Features
 
-- **Hover** any part to highlight it, with a callout explaining its rules. **Click** to pin the callout.
-- **Disassemble**: use presets (remove bodywork, remove wheels, bare chassis, power unit, exploded) or the explode slider.
-- **Layers**: toggle bodywork, wings & floor, wheels, brakes & suspension, chassis, power unit, cockpit and FIA electronics.
-- **Rule colours**: tint every part by who designs it (FIA single supplier, defined spec, PU, transferable, open source, team-designed).
-- **X-ray** the bodywork and survival cell to see the fuel cell, battery and engine in place.
-- **Dimensions**: overlay the key regulated measurements.
-- **Active aero**: switch Corner Mode / Straight Mode to animate the 2026 movable wings.
-- Change the **tyre compound**.
+- **Motorsport IoT Sensors Layer**: 32 real-world motorsport telemetry sensors modeled in 3D across 55 physical mounting locations (pitot tube array, brake pyrometers, pushrod load cells, damper potentiometers, ultrasonic fuel flow meters, ADR crash black boxes, RF antennas, and the FIA SECU).
+- **Interactive 3D 360° Turntable Inspector**: Clicking any sensor opens a live 3D mini-studio inside the callout card with auto-turntable and mouse/touch drag controls to inspect physical hardware geometry.
+- **Camera Focus Zoom**: Click "Focus 3D View" or pick any sensor to fly the camera close-up to inspect it directly in place on the car.
+- **Subsystem & Authority Filters**: Filter sensors by `Control`, `Monitoring`, `Instrumentation`, `FIA Mandatory`, and `Team Engineering`.
+- **Disassemble & Explode**: Presets and an explode slider to view all internals and see physical sensors track outward with their parent assemblies.
+- **X-Ray & Active Aero**: Inspect powertrain internals through translucent bodywork and toggle active aerodynamics.
+- **Rule & Category Colors**: Tint components by regulatory design classification.
 
-## Code map
+## Deployment to Vercel
 
-| Path | Purpose |
-| --- | --- |
-| `src/car/geometry.js` | Loft / aerofoil / strut / lathe helpers used to build smooth surfaces |
-| `src/car/materials.js` | Procedural carbon weave, heat-tint, foil and plank textures, plus the position-based livery shader |
-| `src/car/body.js`, `aero.js`, `corners.js`, `internals.js`, `cockpit.js` | Car sub-assemblies |
-| `src/car/registry.js` | Part registry (explode offsets, layers, mirroring) |
-| `src/data/parts.js` | Rules content, component categories and layers |
-| `src/main.js` | Scene, post-processing, picking, animation |
-| `src/ui/` | Callout card with leader line, and the top / bottom toolbars |
-| `src/dimensions.js` | Dimension overlay |
+Click the **Deploy with Vercel** button above or import the repository `chandan-bk/formula1-sensors` into your Vercel dashboard.
 
-## Sources
+```bash
+npx vercel --prod
+```
 
-FIA 2026 Formula 1 Regulations: Section C [Technical] (Issue 20, 5 Aug 2026) and
-Section B [Sporting] (Issue 07, 25 Jun 2026). Component classes come from Article C17 /
-Appendix C6. Background from FIA, formula1.com and Pirelli. This is a simplified explainer.
-The regulations themselves are the binding text.
+## Sources & References
+
+- FIA 2026 Formula 1 Technical Regulations (Issue 20).
+- McLaren Applied Standard Electronic Control Unit (TAG-320 / SECU) specifications.
+- Texense, Gill Sensors & Controls, Bosch Motorsport technical documentation.
