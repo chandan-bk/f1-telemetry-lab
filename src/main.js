@@ -19,6 +19,7 @@ import { initUI } from './ui/panels.js';
 import { ENABLE_SENSORS } from './config/sensorsConfig.js';
 import { SensorsManager } from './car/sensors.js';
 import { initSensorsUI } from './ui/sensorsUI.js';
+import { initTelemetryDashboard } from './ui/telemetryDashboard.js';
 
 /* ------------------------------------------------------------------ */
 /* Renderer, scene, camera                                            */
@@ -173,6 +174,7 @@ const state = {
 
 let sensorsManager = null;
 let sensorsUI = null;
+let telemetryDashboard = null;
 if (ENABLE_SENSORS) {
   sensorsManager = new SensorsManager({
     scene,
@@ -652,8 +654,15 @@ if (ENABLE_SENSORS && sensorsManager) {
     onLayerToggle: () => {
       requestRender(2);
     },
+    onSensorSelect: (sensor) => {
+      const marker = sensorsManager?.markers.find((m) => m.sensor === sensor);
+      if (marker) flyToSensor(sensor, marker.parentPart);
+      requestRender(2);
+    },
   });
 }
+
+telemetryDashboard = initTelemetryDashboard();
 
 /* ------------------------------------------------------------------ */
 /* Animation                                                          */
