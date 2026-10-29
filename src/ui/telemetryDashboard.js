@@ -35,7 +35,10 @@ export function initTelemetryDashboard() {
     <div class="telemetry-disclaimer">Educational visualization. Demo values are simulated and are not actual Formula 1 telemetry. Validate sensor calibration and safe operating limits before using hardware data.</div>`;
   document.body.appendChild(panel);
 
-  const $ = (id) => panel.querySelector(`#${id}`);
+  const $ = (selector) =>
+    selector.startsWith('.') || selector.startsWith('#')
+      ? panel.querySelector(selector)
+      : panel.querySelector(`#${selector}`);
   const history = [];
   const maxSamples = 30;
   let demoRunning = true;
