@@ -30,9 +30,9 @@ npm run build
 npm run preview
 ```
 
-## Optional hardware data bridge
+## Optional telemetry data bridge
 
-Open **Telemetry** in the top bar. The dashboard runs simulated data by default and explicitly labels it as demo data. To use actual sensor readings, a compatible WebSocket bridge must be running and configured in the dashboard. The browser cannot directly read arbitrary ESP32 sensor pins; the ESP32 firmware and/or a gateway must publish the measurements over a protocol the browser can access.
+Open **Telemetry** in the top bar. The dashboard runs simulated data by default and explicitly labels it as demo data. To use live stream readings, a compatible WebSocket bridge must be running and configured in the dashboard. The browser accepts JSON telemetry payloads streamed over standard WebSockets.
 
 The bridge should send JSON objects with these numeric keys (timestamp is optional):
 
